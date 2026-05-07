@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ghost Engineer
 
-## Getting Started
+Ghost Engineer is a hackathon MVP that turns a public GitHub repository URL into a senior-style engineering review dashboard.
 
-First, run the development server:
+The app fetches public repo metadata, README content, the file tree, and selected important files. It detects the stack and sends compact context through exactly four AI agents:
+
+- Architect
+- Debugger
+- Security Reviewer
+- Product Manager
+
+The dashboard shows repository overview, detected stack, architecture summary, risk score, start-here files, agent reviews, agent debate, and a fix plan.
+
+## Run Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copy `.env.example` to `.env.local` and fill any available keys.
 
-## Learn More
+```txt
+GEMINI_API_KEY=
+GROQ_API_KEY=
+GITHUB_TOKEN=
+NEXT_PUBLIC_SPLINE_SCENE_URL=
+```
 
-To learn more about Next.js, take a look at the following resources:
+`GITHUB_TOKEN` is optional. AI keys stay server-side. The app still works without keys by returning the local fallback demo report.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Routes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/` landing and repo input
+- `/analyze` scanning flow
+- `/dashboard` Ghost Council report
+- `/api/analyze` stateless analysis API
 
-## Deploy on Vercel
+## MVP Boundaries
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This build intentionally excludes login, database persistence, payments, profiles, saved history, private repository access, GitHub OAuth, comments, settings, pull request creation, and automatic code modification.

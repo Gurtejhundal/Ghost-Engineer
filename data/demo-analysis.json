@@ -1,0 +1,235 @@
+{
+  "mode": "fallback",
+  "repo": {
+    "name": "signal-board",
+    "owner": "demo-labs",
+    "fullName": "demo-labs/signal-board",
+    "description": "A public Next.js analytics dashboard for tracking product signals and lightweight incident notes.",
+    "defaultBranch": "main",
+    "stars": 842,
+    "forks": 96,
+    "primaryLanguage": "TypeScript",
+    "openIssues": 18,
+    "updatedAt": "2026-05-02T14:18:00Z",
+    "url": "https://github.com/demo-labs/signal-board"
+  },
+  "detectedStack": [
+    "Next.js",
+    "React",
+    "TypeScript",
+    "Tailwind CSS",
+    "Node.js"
+  ],
+  "architectureSummary": "Signal Board appears to be a frontend-heavy Next.js application with App Router pages, reusable dashboard components, and a small API layer. The structure is understandable, but data access, UI state, and product workflows should be made more explicit before the repository grows.",
+  "importantFiles": [
+    {
+      "path": "README.md",
+      "category": "documentation",
+      "reason": "Defines product intent, local setup, and the demo workflow."
+    },
+    {
+      "path": "package.json",
+      "category": "dependency",
+      "reason": "Shows framework choice, scripts, and core runtime dependencies."
+    },
+    {
+      "path": "app/page.tsx",
+      "category": "entry",
+      "reason": "Primary landing route and first user-facing workflow."
+    },
+    {
+      "path": "app/api/events/route.ts",
+      "category": "entry",
+      "reason": "Main server route where external data enters the app."
+    },
+    {
+      "path": "components/dashboard-shell.tsx",
+      "category": "source",
+      "reason": "Composes the core dashboard experience and state boundaries."
+    },
+    {
+      "path": ".env.example",
+      "category": "environment",
+      "reason": "Documents required runtime configuration without exposing secrets."
+    },
+    {
+      "path": "tailwind.config.ts",
+      "category": "config",
+      "reason": "Controls design tokens and responsive behavior."
+    },
+    {
+      "path": "tsconfig.json",
+      "category": "config",
+      "reason": "Defines TypeScript strictness and import paths."
+    }
+  ],
+  "riskScore": {
+    "architectureRisk": 44,
+    "debuggingComplexity": 57,
+    "securityRisk": 36,
+    "productClarity": 72,
+    "overallHealth": 69
+  },
+  "agents": [
+    {
+      "role": "Architect",
+      "summary": "The app has a clean Next.js shape, but the boundaries between routes, dashboard composition, and data normalization need firmer ownership.",
+      "topFindings": [
+        "The App Router layout is easy to enter from app/page.tsx.",
+        "Dashboard components are grouped well enough for a first pass.",
+        "API and UI data contracts should be centralized before adding more panels."
+      ],
+      "risks": [
+        {
+          "title": "Loose data boundary",
+          "severity": "medium",
+          "explanation": "If API responses drift from dashboard expectations, visual components will accumulate defensive checks."
+        },
+        {
+          "title": "Feature growth pressure",
+          "severity": "medium",
+          "explanation": "New dashboard sections may land as route-level logic unless shared composition rules are established."
+        }
+      ],
+      "recommendations": [
+        "Define shared result types before expanding the dashboard.",
+        "Keep API transformation in lib/ rather than inside page components.",
+        "Document the route and component ownership model in README.md."
+      ],
+      "priorityScore": 78,
+      "confidenceScore": 82
+    },
+    {
+      "role": "Debugger",
+      "summary": "The likely failure points are API response shape mismatches, missing environment variables, and loading states that do not recover from partial failure.",
+      "topFindings": [
+        "The dashboard path depends on complete analysis data being present.",
+        "Environment-driven features need graceful fallback states.",
+        "Local demo data is a strong recovery mechanism if kept schema-compatible."
+      ],
+      "risks": [
+        {
+          "title": "Loading dead end",
+          "severity": "high",
+          "explanation": "A failed fetch could leave users waiting unless the scan route always routes to a valid result."
+        },
+        {
+          "title": "Silent malformed data",
+          "severity": "medium",
+          "explanation": "AI-generated JSON or API changes can create blank sections without a clear user-facing error."
+        }
+      ],
+      "recommendations": [
+        "Add a hard timeout around live analysis.",
+        "Validate result shape before writing to localStorage.",
+        "Keep a manual demo mode CTA visible on landing and empty dashboard states."
+      ],
+      "priorityScore": 86,
+      "confidenceScore": 80
+    },
+    {
+      "role": "Security Reviewer",
+      "summary": "The repository has a small attack surface, but any server route that calls third-party APIs must protect keys and avoid echoing raw provider failures.",
+      "topFindings": [
+        "No private repository support reduces credential complexity.",
+        ".env.example is the correct place to document keys without exposing them.",
+        "Server-only provider calls should stay inside API routes and lib modules."
+      ],
+      "risks": [
+        {
+          "title": "Provider error leakage",
+          "severity": "medium",
+          "explanation": "Raw AI or GitHub errors can reveal configuration details if returned directly to the browser."
+        },
+        {
+          "title": "Unbounded repo input",
+          "severity": "medium",
+          "explanation": "Large repositories can create expensive or slow requests unless the parser samples only important files."
+        }
+      ],
+      "recommendations": [
+        "Never expose GEMINI_API_KEY, GROQ_API_KEY, or GITHUB_TOKEN in client code.",
+        "Return clean fallback responses instead of raw stack traces.",
+        "Limit fetched file previews by path, size, and count."
+      ],
+      "priorityScore": 74,
+      "confidenceScore": 84
+    },
+    {
+      "role": "Product Manager",
+      "summary": "The product story is strong when it stays focused on fast repo understanding and a prioritized fix plan, not account features.",
+      "topFindings": [
+        "The council metaphor makes the analysis feel more valuable than a README summary.",
+        "Risk score, debate, and fix plan create a clear demo arc.",
+        "The strongest next feature is better repo-specific action prioritization, not saved history."
+      ],
+      "risks": [
+        {
+          "title": "Scope dilution",
+          "severity": "high",
+          "explanation": "Login, profiles, and SaaS settings would distract from the core hackathon proof."
+        },
+        {
+          "title": "Generic recommendations",
+          "severity": "medium",
+          "explanation": "The dashboard loses credibility if findings do not mention concrete files or repo structure."
+        }
+      ],
+      "recommendations": [
+        "Keep the first screen centered on pasting a public GitHub URL.",
+        "Make fallback mode feel intentional and demo-safe.",
+        "Prioritize concise, file-aware output over long AI prose."
+      ],
+      "priorityScore": 82,
+      "confidenceScore": 86
+    }
+  ],
+  "debate": {
+    "comments": [
+      {
+        "role": "Architect",
+        "position": "Stabilize structure before adding more dashboard modules.",
+        "reasoning": "The existing layout is understandable, but feature additions should not blur route, data, and presentation boundaries."
+      },
+      {
+        "role": "Debugger",
+        "position": "Fix failure recovery first.",
+        "reasoning": "A hackathon demo cannot afford an endless loading state or malformed result screen."
+      },
+      {
+        "role": "Security Reviewer",
+        "position": "Keep all external API calls server-side and aggressively sampled.",
+        "reasoning": "The app only needs public repository context, so there is no reason to increase credential exposure."
+      },
+      {
+        "role": "Product Manager",
+        "position": "Ship the command-center review loop and reject SaaS bloat.",
+        "reasoning": "The user value is understanding a repo in minutes, not managing an account."
+      }
+    ],
+    "finalDecision": "Prioritize a reliable paste-to-dashboard flow: validate public GitHub URLs, sample important files, run four concise agents, and always fall back to a complete demo report if live analysis fails."
+  },
+  "fixPlan": {
+    "understandFirst": [
+      "Read README.md to confirm product promise and local setup.",
+      "Inspect package.json scripts and dependencies before running the app.",
+      "Open app/page.tsx and dashboard composition files to trace the primary workflow."
+    ],
+    "fixFirst": [
+      "Guarantee fallback mode after API, GitHub, or AI provider failure.",
+      "Centralize shared TypeScript result contracts.",
+      "Add validation around repository URL input and provider JSON output."
+    ],
+    "buildNext": [
+      "Improve repo-specific file explanations using important file previews.",
+      "Add clearer risk scoring explanations in the dashboard.",
+      "Tune agent prompts for shorter, more decisive findings."
+    ],
+    "ignoreForNow": [
+      "Authentication and profile management.",
+      "Private repository support.",
+      "Saved report history or database persistence.",
+      "Automatic code modification or pull request creation."
+    ]
+  }
+}
