@@ -1,10 +1,22 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, GitBranch, Sparkles } from "lucide-react";
 
 const demoRepo = "https://github.com/demo-labs/signal-board";
+
+function subscribeToHydration() {
+  return () => undefined;
+}
+
+function getClientSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
 
 function isValidGitHubRepoUrl(value: string): boolean {
   try {
@@ -23,6 +35,11 @@ function isValidGitHubRepoUrl(value: string): boolean {
 
 export function RepoInput({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
+  const mounted = useSyncExternalStore(
+    subscribeToHydration,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
   const [repoUrl, setRepoUrl] = useState("");
   const [error, setError] = useState("");
 
@@ -45,6 +62,25 @@ export function RepoInput({ compact = false }: { compact?: boolean }) {
     startAnalysis(false);
   }
 
+  if (!mounted) {
+    return (
+      <div className={compact ? "w-full" : "mx-auto w-full max-w-3xl"}>
+        <div className="rounded-3xl border border-[#123B35]/80 bg-[#030807]/80 p-2 shadow-2xl shadow-[#00A88F]/10 backdrop-blur">
+          <div className="flex flex-col gap-2 md:flex-row">
+            <div className="flex min-h-12 flex-1 items-center gap-3 rounded-2xl border border-[#0F2A26] bg-[#000000]/80 px-4">
+              <GitBranch className="h-5 w-5 shrink-0 text-[#00D1B2]" aria-hidden="true" />
+              <div className="h-4 w-full rounded-full bg-[#0F2A26]" />
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:flex">
+              <div className="min-h-12 rounded-2xl bg-[#00A88F]/70 px-5 md:w-48" />
+              <div className="min-h-12 rounded-2xl border border-[#123B35] bg-[#08201C]/80 px-5 md:w-44" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={compact ? "w-full" : "mx-auto w-full max-w-3xl"}>
       <form
@@ -63,6 +99,8 @@ export function RepoInput({ compact = false }: { compact?: boolean }) {
               placeholder="Paste a public GitHub repo URL..."
               className="h-12 w-full bg-transparent text-sm text-[#FFFFFF] outline-none placeholder:text-[#55706A] md:text-base"
               aria-label="GitHub repository URL"
+              autoComplete="off"
+              spellCheck={false}
             />
           </label>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:flex">

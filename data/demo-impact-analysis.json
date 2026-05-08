@@ -1,0 +1,390 @@
+{
+  "mode": "fallback",
+  "fallbackReason": "DEMO_AGRICULTURE_IMPACT_BLUEPRINT",
+  "input": {
+    "domain": "Agriculture",
+    "problemTitle": "Irregular electricity alerts for tube-well irrigation",
+    "problemDescription": "Small farmers do not know when electricity is available for tube-well irrigation motors, so they waste time repeatedly visiting fields and may miss irrigation windows.",
+    "repoProvided": false
+  },
+  "repoContext": {
+    "provided": false,
+    "importantFiles": [],
+    "detectedStack": [],
+    "reusableSignals": [
+      "Low-cost GSM/SMS alert pattern",
+      "Microcontroller event monitoring",
+      "Simple public dashboard for pilot metrics",
+      "Field-testing documentation workflow"
+    ],
+    "repoSummary": "No repository was provided. Ghost Engineer generated recommended open-source components from the problem context."
+  },
+  "impactBlueprint": {
+    "projectName": "OpenIrrigate Alert",
+    "mission": "Help small and marginal farmers receive reliable electricity availability alerts for tube-well irrigation without requiring smartphones or constant internet access.",
+    "problemSummary": "Farmers in villages with irregular electricity supply repeatedly visit fields to check whether motors can run. This wastes time, increases missed irrigation windows, and creates avoidable stress during crop cycles.",
+    "targetUsers": [
+      "Small and marginal farmers using electric tube-well motors",
+      "Village-level farming groups",
+      "Local electricians supporting irrigation infrastructure"
+    ],
+    "openSourceOpportunity": "A low-cost, documented, community-replicable alert kit can help villages adapt the solution to local electricity patterns, languages, and hardware availability.",
+    "mvpFeatures": [
+      "Detect electricity availability at the pump-side control point",
+      "Send SMS alerts to registered farmers when electricity is available",
+      "Log alert delivery and manual confirmation for pilot review",
+      "Provide setup documentation for local electricians",
+      "Show a tiny dashboard for pilot metrics and field notes"
+    ],
+    "technicalApproach": [
+      "Use a microcontroller or GSM module to detect safe power availability signals",
+      "Send SMS alerts through a low-cost GSM module before adding any internet dependency",
+      "Keep remote motor control out of MVP until electrical isolation is validated",
+      "Document installation, failure modes, and field-testing steps in the GitHub Pack"
+    ],
+    "reusableParts": [],
+    "missingParts": [
+      "Safe electrical sensing diagram",
+      "SMS delivery retry logic",
+      "Farmer registration sheet or simple admin flow",
+      "Pilot field-testing checklist",
+      "Local-language alert templates"
+    ],
+    "recommendedOpenSourceComponents": [
+      "Arduino GSM SMS examples",
+      "ESP32/Arduino sensor logging starter",
+      "Static Next.js or Vite pilot dashboard",
+      "Open-source documentation templates for field testing"
+    ],
+    "impactScore": 91,
+    "feasibilityScore": 78,
+    "difficultyLevel": "medium",
+    "safetyAndTrustConcerns": [
+      "Do not automate motor switching in MVP",
+      "Use electrical isolation and qualified local installation",
+      "Make alerts advisory, not guaranteed",
+      "Protect farmer phone numbers and consent records"
+    ]
+  },
+  "agents": [
+    {
+      "role": "Open-Source Architect",
+      "summary": "Structure the project as a small hardware alert kit plus clear field documentation. Keep sensor, SMS, dashboard, and pilot docs as separate modules so contributors can work independently.",
+      "topFindings": [
+        "The MVP should be an alert system, not a remote-control system.",
+        "Contributor onboarding depends on wiring diagrams, setup docs, and sample alert flows.",
+        "The GitHub Pack must include field-testing and impact reporting files from day one."
+      ],
+      "risks": [
+        {
+          "title": "Unsafe hardware scope",
+          "severity": "high",
+          "explanation": "Adding motor control before electrical isolation is proven could create field safety risks."
+        },
+        {
+          "title": "Undocumented installation",
+          "severity": "medium",
+          "explanation": "If the wiring and setup path are unclear, villages cannot safely replicate the kit."
+        }
+      ],
+      "recommendations": [
+        "Create separate folders for firmware, dashboard, docs, and field-testing.",
+        "Start with SMS alert proof-of-concept and a manual pilot log.",
+        "Add diagrams and safety boundaries before inviting hardware contributors."
+      ],
+      "priorityScore": 86,
+      "confidenceScore": 82
+    },
+    {
+      "role": "Feasibility Reviewer",
+      "summary": "A 7-day MVP is realistic if the scope stays limited to detection, SMS alerting, and manual pilot measurement. Internet dashboards and automation should remain secondary.",
+      "topFindings": [
+        "SMS-first design matches low-connectivity villages better than app-first design.",
+        "A single-village pilot with five farmers is feasible.",
+        "Hardware reliability and SIM connectivity are the main build risks."
+      ],
+      "risks": [
+        {
+          "title": "Connectivity variance",
+          "severity": "medium",
+          "explanation": "GSM delivery can vary by village and may require retry or missed-alert handling."
+        },
+        {
+          "title": "Overbuilt dashboard",
+          "severity": "medium",
+          "explanation": "A complex web dashboard could distract from the core field alert behavior."
+        }
+      ],
+      "recommendations": [
+        "Pilot with one installation and five phone numbers first.",
+        "Measure alert success rate before adding richer features.",
+        "Use a manual fallback log when GSM messages fail."
+      ],
+      "priorityScore": 81,
+      "confidenceScore": 78
+    },
+    {
+      "role": "Safety & Trust Reviewer",
+      "summary": "The project helps farmers only if alerts are reliable, consent-based, and clearly marked as advisory. Electrical safety and phone-number privacy must be treated as core requirements.",
+      "topFindings": [
+        "Remote motor control should be explicitly out of scope for MVP.",
+        "Farmer phone numbers require consent and careful storage.",
+        "False positive and missed alerts need simple field instructions."
+      ],
+      "risks": [
+        {
+          "title": "Electrical safety",
+          "severity": "high",
+          "explanation": "Pump-side installation can be dangerous without qualified local support and isolation."
+        },
+        {
+          "title": "False trust in alerts",
+          "severity": "medium",
+          "explanation": "Farmers may rely on alerts for irrigation timing, so failures must be communicated clearly."
+        }
+      ],
+      "recommendations": [
+        "Add a safety checklist to FIELD_TESTING.md.",
+        "Use consent language before collecting phone numbers.",
+        "Include failure-mode instructions in the pilot guide."
+      ],
+      "priorityScore": 88,
+      "confidenceScore": 80
+    },
+    {
+      "role": "Impact Product Manager",
+      "summary": "The impact story is strong because the pain is concrete, frequent, and measurable. The MVP should prove reduced unnecessary field visits before adding broader farm-management features.",
+      "topFindings": [
+        "Target user is clear: small farmers with electric tube-well motors.",
+        "Success can be measured in field visits saved and alert reliability.",
+        "The pilot should stay village-scale and locally supported."
+      ],
+      "risks": [
+        {
+          "title": "Adoption friction",
+          "severity": "medium",
+          "explanation": "Farmers may ignore alerts if the first few messages are wrong or delayed."
+        },
+        {
+          "title": "Feature creep",
+          "severity": "medium",
+          "explanation": "Adding crop advice, payments, or motor control could dilute the field-testable value."
+        }
+      ],
+      "recommendations": [
+        "Pitch the product as electricity availability alerts, not full irrigation automation.",
+        "Measure unnecessary field visits reduced over one week.",
+        "Work with one community partner before scaling."
+      ],
+      "priorityScore": 84,
+      "confidenceScore": 83
+    }
+  ],
+  "debate": {
+    "comments": [
+      {
+        "role": "Open-Source Architect",
+        "position": "The repository should be organized for contributors before feature expansion.",
+        "reasoning": "Clear firmware, docs, and pilot folders make the project easier for students and field partners to improve."
+      },
+      {
+        "role": "Feasibility Reviewer",
+        "position": "The 7-day build should prove SMS alerts only.",
+        "reasoning": "Anything beyond detection and alert delivery increases risk without improving the first pilot."
+      },
+      {
+        "role": "Safety & Trust Reviewer",
+        "position": "Remote motor control must be deferred.",
+        "reasoning": "Electrical safety, consent, and alert reliability are more important than automation in the first field test."
+      },
+      {
+        "role": "Impact Product Manager",
+        "position": "Pilot success should be measured by farmer behavior, not dashboard polish.",
+        "reasoning": "The product wins if farmers save visits and trust the alerts."
+      }
+    ],
+    "finalDecision": "Build the smallest SMS-based electricity alert kit, document safety boundaries, test with five farmers in one village, and use the GitHub Pack to recruit contributors for firmware, docs, field testing, and a lightweight dashboard."
+  },
+  "contributorBoard": [
+    {
+      "role": "Embedded Developer",
+      "purpose": "Build the electricity detection and SMS alert firmware.",
+      "tasks": [
+        "Prototype safe signal detection",
+        "Send SMS alert on availability state change",
+        "Add retry and manual test mode"
+      ],
+      "goodFirstIssues": [
+        {
+          "title": "Create sample SMS alert template",
+          "description": "Add English and local-language sample messages for electricity availability and missed-alert warnings.",
+          "label": "good first issue",
+          "estimatedEffort": "2 hours"
+        }
+      ],
+      "requiredSkills": ["Arduino or ESP32", "GSM module basics", "serial debugging"],
+      "estimatedEffort": "2-3 days"
+    },
+    {
+      "role": "Documentation Writer",
+      "purpose": "Make the project safe and reproducible for community contributors.",
+      "tasks": [
+        "Write installation checklist",
+        "Document safety warnings",
+        "Prepare field-testing instructions"
+      ],
+      "goodFirstIssues": [
+        {
+          "title": "Draft FIELD_TESTING.md checklist",
+          "description": "Write a step-by-step field checklist for one-village pilot testing.",
+          "label": "documentation",
+          "estimatedEffort": "3 hours"
+        }
+      ],
+      "requiredSkills": ["Technical writing", "Markdown", "field empathy"],
+      "estimatedEffort": "1-2 days"
+    },
+    {
+      "role": "Field Tester",
+      "purpose": "Validate alert usefulness with farmers during the pilot.",
+      "tasks": [
+        "Recruit five farmers",
+        "Track alert success and missed alerts",
+        "Collect farmer feedback"
+      ],
+      "goodFirstIssues": [
+        {
+          "title": "Create farmer feedback form",
+          "description": "Design a simple feedback form for alert timing, trust, and visits saved.",
+          "label": "field-testing",
+          "estimatedEffort": "2 hours"
+        }
+      ],
+      "requiredSkills": ["Local coordination", "survey basics", "communication"],
+      "estimatedEffort": "1 week pilot"
+    },
+    {
+      "role": "Frontend Developer",
+      "purpose": "Build a tiny pilot dashboard for logs and metrics.",
+      "tasks": [
+        "Show alert delivery log",
+        "Display pilot success metrics",
+        "Add simple responsive layout"
+      ],
+      "goodFirstIssues": [
+        {
+          "title": "Build static pilot metrics card",
+          "description": "Create UI cards for alert success rate, visits saved, and active pilot users.",
+          "label": "frontend",
+          "estimatedEffort": "4 hours"
+        }
+      ],
+      "requiredSkills": ["React", "CSS", "basic data visualization"],
+      "estimatedEffort": "1-2 days"
+    }
+  ],
+  "githubPack": [
+    {
+      "fileName": "README.md",
+      "purpose": "Explain the problem, project mission, MVP, hardware assumptions, and pilot goal.",
+      "suggestedContent": "# OpenIrrigate Alert\n\nAn open-source SMS alert kit for farmers with irregular tube-well electricity supply."
+    },
+    {
+      "fileName": "CONTRIBUTING.md",
+      "purpose": "Tell developers, field testers, and documentation contributors how to help safely.",
+      "suggestedContent": "Start with good-first-issues. Hardware changes must respect the MVP safety boundary."
+    },
+    {
+      "fileName": "LICENSE.md",
+      "purpose": "Clarify open-source reuse terms for community adaptation.",
+      "suggestedContent": "Use a permissive license such as MIT for software and document hardware notes separately."
+    },
+    {
+      "fileName": "ROADMAP.md",
+      "purpose": "Show MVP, pilot, and post-pilot milestones.",
+      "suggestedContent": "MVP: SMS alert only. Pilot: five farmers. Later: dashboard and localization."
+    },
+    {
+      "fileName": "ISSUES.md",
+      "purpose": "List starter issues for contributors.",
+      "suggestedContent": "Create issues for SMS templates, safety checklist, firmware logging, and pilot metrics UI."
+    },
+    {
+      "fileName": "FIELD_TESTING.md",
+      "purpose": "Define the field pilot, safety checklist, consent flow, and failure handling.",
+      "suggestedContent": "Do not connect to live motor control during MVP. Validate alert delivery manually."
+    },
+    {
+      "fileName": "IMPACT_REPORT.md",
+      "purpose": "Track impact metrics and farmer feedback after the pilot.",
+      "suggestedContent": "Measure field visits saved, alert success rate, cost per setup, and farmer satisfaction."
+    }
+  ],
+  "pilotPlan": {
+    "pilotUsers": "Five small farmers using electric tube-well motors.",
+    "locationContext": "One rural village with irregular electricity supply and basic GSM coverage.",
+    "successMetrics": [
+      "Unnecessary field visits reduced",
+      "Alert delivery success rate above 85%",
+      "Farmer-reported trust in alerts",
+      "Installation cost kept low enough for community replication"
+    ],
+    "testingSteps": [
+      "Validate safe electrical sensing with a local electrician",
+      "Register five consenting farmer phone numbers",
+      "Run alert delivery tests across different supply windows",
+      "Record false alerts, missed alerts, and farmer actions",
+      "Collect feedback after seven days"
+    ],
+    "safetyChecklist": [
+      "No remote motor control in MVP",
+      "Qualified person handles electrical installation",
+      "Phone numbers collected with consent",
+      "Alerts clearly marked advisory",
+      "Manual override and failure instructions documented"
+    ],
+    "sevenDayPlan": [
+      {
+        "day": 1,
+        "title": "Define MVP and safety limits",
+        "tasks": ["Finalize alert-only scope", "Write initial safety checklist"]
+      },
+      {
+        "day": 2,
+        "title": "Build detection prototype",
+        "tasks": ["Wire safe signal detection", "Log electricity state changes"]
+      },
+      {
+        "day": 3,
+        "title": "Add SMS alert flow",
+        "tasks": ["Send test SMS", "Add retry and failure note"]
+      },
+      {
+        "day": 4,
+        "title": "Prepare pilot dashboard",
+        "tasks": ["Create static metrics view", "Add alert log table"]
+      },
+      {
+        "day": 5,
+        "title": "Test failure cases",
+        "tasks": ["Simulate missed alert", "Test weak GSM signal process"]
+      },
+      {
+        "day": 6,
+        "title": "Write GitHub Pack",
+        "tasks": ["Draft README", "Create FIELD_TESTING.md", "Add starter issues"]
+      },
+      {
+        "day": 7,
+        "title": "Run pilot demo",
+        "tasks": ["Demo alert path", "Collect field feedback", "Update impact report"]
+      }
+    ],
+    "postPilotNextSteps": [
+      "Localize SMS templates",
+      "Add community-maintained installation photos",
+      "Improve retry handling",
+      "Invite more contributors after safety validation"
+    ]
+  }
+}

@@ -12,6 +12,7 @@ import {
   Lightbulb,
   ShieldCheck,
 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { RepoInput } from "@/components/RepoInput";
 import { slugToAgent } from "@/lib/agent-routing";
 import type { AgentReview, AgentRole, AnalysisResult } from "@/lib/schemas";
@@ -51,6 +52,197 @@ function scoreBar(label: string, value: number) {
       <div class="metric-row"><span>${escapeHtml(label)}</span><strong>${value}%</strong></div>
       <div class="track"><div class="fill" style="width:${value}%"></div></div>
     </div>
+  `;
+}
+
+function graphNode(
+  id: string,
+  label: string,
+  x: number,
+  y: number,
+  color: string,
+  radius = 34,
+  subtitle = "",
+) {
+  const width = id === "agent" ? 220 : Math.max(150, Math.min(210, radius * 3.5));
+  const height = id === "agent" ? 92 : 72;
+  const left = x - width / 2;
+  const top = y - height / 2;
+
+  return `
+    <g class="node" data-node="${escapeHtml(id)}">
+      <rect class="node-halo" x="${left - 8}" y="${top - 8}" width="${width + 16}" height="${height + 16}" rx="24" fill="${color}" />
+      <rect class="node-shell" x="${left}" y="${top}" width="${width}" height="${height}" rx="20" fill="${color}" />
+      <circle class="node-orb" cx="${left + 27}" cy="${top + 26}" r="7" />
+      <foreignObject x="${left + 44}" y="${top + 15}" width="${width - 58}" height="${height - 25}">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="node-content">
+          <div class="node-title">${escapeHtml(label)}</div>
+          ${subtitle ? `<div class="node-subline">${escapeHtml(subtitle)}</div>` : ""}
+        </div>
+      </foreignObject>
+      <title>${escapeHtml(label)}${subtitle ? ` - ${escapeHtml(subtitle)}` : ""}</title>
+    </g>
+  `;
+}
+
+function graphEdge(
+  fromId: string,
+  from: { x: number; y: number },
+  toId: string,
+  to: { x: number; y: number },
+  label: string,
+) {
+  return `
+    <g class="edge" data-from="${escapeHtml(fromId)}" data-to="${escapeHtml(toId)}">
+      <line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" />
+      <text x="${(from.x + to.x) / 2}" y="${(from.y + to.y) / 2 - 5}" text-anchor="middle">${escapeHtml(label)}</text>
+    </g>
+  `;
+}
+
+function relationshipGraphScript(): string {
+  return `
+    <script>
+      (() => {
+        document.querySelectorAll(".graph-panel").forEach((panel) => {
+          const svg = panel.querySelector(".relationship-graph");
+          if (!svg) return;
+          const tooltip = document.createElement("div");
+          tooltip.className = "graph-tooltip";
+          panel.appendChild(tooltip);
+
+          const nodes = [...svg.querySelectorAll(".node")];
+          const edges = [...svg.querySelectorAll(".edge")];
+
+          function clearGraph() {
+            tooltip.classList.remove("visible");
+            nodes.forEach((node) => node.classList.remove("is-active", "is-dim", "is-neighbor"));
+            edges.forEach((edge) => edge.classList.remove("is-active", "is-dim"));
+          }
+
+          function showTooltip(event, text) {
+            const rect = panel.getBoundingClientRect();
+            tooltip.textContent = text;
+            tooltip.style.left = (event.clientX - rect.left + 14) + "px";
+            tooltip.style.top = (event.clientY - rect.top + 14) + "px";
+            tooltip.classList.add("visible");
+          }
+
+          nodes.forEach((node) => {
+            const id = node.dataset.node;
+            const title = node.querySelector("title")?.textContent || id || "Graph node";
+
+            node.addEventListener("mouseenter", (event) => {
+              const connected = new Set([id]);
+              edges.forEach((edge) => {
+                const active = edge.dataset.from === id || edge.dataset.to === id;
+                edge.classList.toggle("is-active", active);
+                edge.classList.toggle("is-dim", !active);
+                if (active) {
+                  connected.add(edge.dataset.from);
+                  connected.add(edge.dataset.to);
+                }
+              });
+              nodes.forEach((candidate) => {
+                const active = candidate.dataset.node === id;
+                const neighbor = connected.has(candidate.dataset.node);
+                candidate.classList.toggle("is-active", active);
+                candidate.classList.toggle("is-neighbor", !active && neighbor);
+                candidate.classList.toggle("is-dim", !neighbor);
+              });
+              showTooltip(event, title);
+            });
+
+            node.addEventListener("mousemove", (event) => showTooltip(event, title));
+            node.addEventListener("mouseleave", clearGraph);
+          });
+
+          svg.addEventListener("mouseleave", clearGraph);
+        });
+      })();
+    </script>
+  `;
+}
+
+function buildAgentRelationshipGraph(analysis: AnalysisResult, agent: AgentReview): string {
+  const center = { x: 510, y: 300 };
+  const risks = agent.risks.slice(0, 4).map((risk, index) => ({
+    id: `risk-${index}`,
+    label: risk.title,
+    subtitle: risk.severity,
+    x: 190,
+    y: 135 + index * 100,
+    color: risk.severity === "high" ? "#351111" : risk.severity === "medium" ? "#2D3308" : "#12360A",
+    radius: 52,
+  }));
+  const findings = agent.topFindings.slice(0, 4).map((finding, index) => ({
+    id: `finding-${index}`,
+    label: finding,
+    subtitle: "finding",
+    x: 830,
+    y: 135 + index * 100,
+    color: "#06231F",
+    radius: 56,
+  }));
+  const files = analysis.importantFiles.slice(0, 4).map((file, index) => ({
+    id: `file-${index}`,
+    label: file.path,
+    subtitle: file.category,
+    x: 210 + index * 205,
+    y: 555,
+    color: "#031713",
+    radius: 54,
+  }));
+  const recommendations = agent.recommendations.slice(0, 3).map((item, index) => ({
+    id: `action-${index}`,
+    label: item,
+    subtitle: "action",
+    x: 330 + index * 205,
+    y: 74,
+    color: "#14310B",
+    radius: 54,
+  }));
+  const nodes = [...risks, ...findings, ...files, ...recommendations];
+  const edges = [
+    ...risks.map((node) => graphEdge("agent", center, node.id, node, "flags")),
+    ...findings.map((node) => graphEdge("agent", center, node.id, node, "observes")),
+    ...files.map((node) => graphEdge("agent", center, node.id, node, "reads")),
+    ...recommendations.map((node) => graphEdge("agent", center, node.id, node, "recommends")),
+  ].join("");
+
+  return `
+    <section class="panel graph-panel">
+      <div class="graph-heading">
+        <div>
+          <p class="eyebrow">Agent Relationship Graph</p>
+          <h2>${escapeHtml(agent.role)} decision map</h2>
+        </div>
+        <p>This graph links the agent to repository files, findings, risks, and recommended actions.</p>
+      </div>
+      <svg class="relationship-graph" viewBox="0 0 1020 650" role="img" aria-label="${escapeHtml(agent.role)} relationship graph">
+        <defs>
+          <radialGradient id="agentGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#00D1B2" stop-opacity=".95" />
+            <stop offset="100%" stop-color="#003B32" stop-opacity=".72" />
+          </radialGradient>
+          <linearGradient id="graphBg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#000000" />
+            <stop offset="52%" stop-color="#020807" />
+            <stop offset="100%" stop-color="#00120F" />
+          </linearGradient>
+          <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+        <rect width="1020" height="650" rx="30" fill="url(#graphBg)" />
+        <path d="M70 105 H950 M70 300 H950 M70 555 H950" stroke="#0F2A26" stroke-opacity=".22" />
+        <circle cx="${center.x}" cy="${center.y}" r="150" fill="#00D1B2" opacity=".05" />
+        ${edges}
+        ${graphNode("agent", agent.role, center.x, center.y, "url(#agentGlow)", 76, `priority ${agent.priorityScore}`)}
+        ${nodes.map((node) => graphNode(node.id, node.label, node.x, node.y, node.color, node.radius, node.subtitle)).join("")}
+      </svg>
+    </section>
   `;
 }
 
@@ -97,6 +289,28 @@ function buildDownloadHtml(analysis: AnalysisResult, agent: AgentReview): string
       .metric-row, .risk div { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
       .track { height: 10px; border-radius: 999px; background: #0F2A26; overflow: hidden; margin-top: 8px; }
       .fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #00A88F, #7CFF00); }
+      .graph-panel { overflow: hidden; position: relative; }
+      .graph-heading { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: end; }
+      .relationship-graph { width: 100%; height: auto; margin-top: 20px; border: 1px solid #123B35; border-radius: 30px; background: #000; box-shadow: inset 0 0 80px rgba(0,209,178,.06); }
+      .edge, .node { transition: opacity .18s ease, filter .18s ease; }
+      .edge line { stroke: #00D1B2; stroke-opacity: .24; stroke-width: 1.3; transition: stroke .18s ease, stroke-opacity .18s ease, stroke-width .18s ease; }
+      .edge text { opacity: 0; fill: #BFFFEF; font-size: 10px; font-family: ui-monospace, monospace; paint-order: stroke; stroke: #000; stroke-width: 5px; transition: opacity .18s ease; }
+      .node { cursor: pointer; transform-box: fill-box; transform-origin: center; transition: opacity .18s ease, transform .18s ease, filter .18s ease; }
+      .node-halo { opacity: .13; filter: url(#glow); transition: opacity .18s ease; }
+      .node-shell { fill-opacity: .86; stroke: #00D1B2; stroke-opacity: .52; stroke-width: 1.2; filter: drop-shadow(0 8px 24px rgba(0, 209, 178, .12)); transition: stroke .18s ease, fill-opacity .18s ease, filter .18s ease; }
+      .node-orb { fill: #7CFF00; opacity: .9; filter: url(#glow); }
+      .node-content { height: 100%; min-width: 0; color: #FFFFFF; font-family: Inter, Arial, sans-serif; }
+      .node-title { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 800; line-height: 1.2; text-shadow: 0 1px 14px rgba(255,255,255,.28); }
+      .node-subline { margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #9EB7AF; font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+      .node.is-active { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(124,255,0,.28)); }
+      .node.is-active .node-shell { stroke: #7CFF00; fill-opacity: .98; }
+      .node.is-active .node-halo, .node.is-neighbor .node-halo { opacity: .3; }
+      .node.is-neighbor { transform: scale(1.03); }
+      .node.is-dim, .edge.is-dim { opacity: .16; }
+      .edge.is-active line { stroke: #7CFF00; stroke-opacity: .9; stroke-width: 2.5; }
+      .edge.is-active text { opacity: 1; }
+      .graph-tooltip { position: absolute; z-index: 5; max-width: 280px; pointer-events: none; opacity: 0; transform: translateY(6px); transition: opacity .16s ease, transform .16s ease; border: 1px solid #00D1B2; border-radius: 14px; background: rgba(0, 0, 0, .9); box-shadow: 0 0 28px rgba(0,209,178,.22); color: #FFFFFF; padding: 10px 12px; font-size: 12px; line-height: 1.4; }
+      .graph-tooltip.visible { opacity: 1; transform: translateY(0); }
       .risk { border: 1px solid #0F2A26; border-radius: 18px; padding: 16px; margin: 12px 0; }
       .risk span { border: 1px solid currentColor; border-radius: 999px; padding: 4px 8px; font-size: 12px; font-family: ui-monospace, monospace; }
       .low { color: #7CFF00; } .medium { color: #A3FF12; } .high { color: #FF4D4D; }
@@ -111,6 +325,7 @@ function buildDownloadHtml(analysis: AnalysisResult, agent: AgentReview): string
       <h1>${escapeHtml(agent.role)}</h1>
       <p>${escapeHtml(analysis.repo.fullName)} · ${escapeHtml(analysis.mode)} analysis</p>
       <section class="panel"><h2>Summary</h2><p>${escapeHtml(agent.summary)}</p></section>
+      ${buildAgentRelationshipGraph(analysis, agent)}
       <section class="panel grid">
         <div>${scoreBar("Priority Score", agent.priorityScore)}</div>
         <div>${scoreBar("Confidence Score", agent.confidenceScore)}</div>
@@ -120,6 +335,7 @@ function buildDownloadHtml(analysis: AnalysisResult, agent: AgentReview): string
       <section class="panel"><h2>Risks</h2>${risks}</section>
       <section class="panel"><h2>Recommendations</h2><ul>${agent.recommendations.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
     </main>
+    ${relationshipGraphScript()}
   </body>
 </html>`;
 }
@@ -273,6 +489,7 @@ export default function AgentReportPage() {
               Back to council dashboard
             </Link>
             <div className="mt-6 flex items-center gap-4">
+              <BrandLogo className="h-14 w-14" />
               <div className="grid h-14 w-14 place-items-center rounded-3xl bg-[#08201C] text-[#00D1B2]">
                 <Icon className="h-7 w-7" aria-hidden="true" />
               </div>

@@ -48,17 +48,25 @@ const configFiles = new Set([
   ".env.example",
   "next.config.js",
   "vite.config.ts",
+  "vite.config.js",
   "tailwind.config.js",
   "tailwind.config.ts",
   "tsconfig.json",
 ]);
 
 const entryFileNames = new Set([
+  "index.html",
+  "public/index.html",
+  "src/index.html",
   "main.py",
   "server.js",
   "index.js",
   "index.ts",
   "index.tsx",
+  "main.js",
+  "src/main.js",
+  "script.js",
+  "src/script.js",
   "app.py",
   "app/page.tsx",
   "pages/index.tsx",
@@ -123,6 +131,10 @@ export function detectImportantFiles(tree: RepoTreeItem[]): ImportantFile[] {
       if (name.toLowerCase() === "readme.md") score += 100;
       if (configFiles.has(name) || configFiles.has(path)) score += 90;
       if (entryFileNames.has(name) || entryFileNames.has(path)) score += 85;
+      if (path.toLowerCase() === "index.html") score += 92;
+      if (path.toLowerCase().endsWith(".html") && path.split("/").length <= 2) score += 72;
+      if (/^(style|styles|main|script)\.css$/i.test(name)) score += 50;
+      if (/^(main|script|app|index)\.js$/i.test(name)) score += 60;
       if (/^(src|app|pages|components|routes|controllers|models)\//.test(path)) score += 48;
       if (path.split("/").length <= 2) score += 12;
       if ((file.size ?? 0) > 100_000) score -= 30;
@@ -151,24 +163,53 @@ function dependencyText(files: ImportantFile[]): string {
 
 export function detectTechStack(tree: RepoTreeItem[], importantFiles: ImportantFile[]): string[] {
   const paths = tree.map((item) => item.path);
+  const lowerPaths = paths.map((path) => path.toLowerCase());
   const text = dependencyText(importantFiles).toLowerCase();
   const stack = new Set<string>();
 
-  if (paths.includes("package.json")) stack.add("Node.js");
-  if (text.includes('"next"') || paths.some((path) => path.startsWith("app/"))) stack.add("Next.js");
-  if (text.includes('"react"') || paths.some((path) => path.endsWith(".tsx"))) stack.add("React");
+  const hasPackageJson = lowerPaths.includes("package.json");
+  const hasHtml = lowerPaths.some((path) => path.endsWith(".html"));
+  const hasCss = lowerPaths.some((path) => path.endsWith(".css"));
+  const hasJavascript = lowerPaths.some((path) => path.endsWith(".js") || path.endsWith(".mjs"));
+  const hasTypeScript = lowerPaths.some((path) => path.endsWith(".ts") || path.endsWith(".tsx"));
+
+  if (hasHtml) stack.add("HTML");
+  if (hasCss) stack.add("CSS");
+  if (hasJavascript) stack.add("JavaScript");
+  if (hasHtml && !hasPackageJson) stack.add("Static Website");
+  if (hasPackageJson) stack.add("Node.js");
+  if (
+    text.includes('"next"') ||
+    lowerPaths.some((path) => /^next\.config\.(js|mjs|ts)$/.test(path))
+  ) {
+    stack.add("Next.js");
+  }
+  if (
+    text.includes('"react"') ||
+    (hasPackageJson && lowerPaths.some((path) => path.endsWith(".jsx") || path.endsWith(".tsx")))
+  ) {
+    stack.add("React");
+  }
   if (text.includes('"express"')) stack.add("Express");
-  if (text.includes('"vite"') || paths.includes("vite.config.ts")) stack.add("Vite");
-  if (text.includes("tailwind") || paths.some((path) => path.startsWith("tailwind.config"))) {
+  if (text.includes('"vite"') || lowerPaths.some((path) => path.startsWith("vite.config."))) {
+    stack.add("Vite");
+  }
+  if (text.includes("tailwind") || lowerPaths.some((path) => path.startsWith("tailwind.config"))) {
     stack.add("Tailwind CSS");
   }
-  if (paths.some((path) => path.endsWith(".ts") || path.endsWith(".tsx"))) stack.add("TypeScript");
-  if (paths.includes("requirements.txt") && text.includes("fastapi")) stack.add("FastAPI");
-  if (paths.includes("requirements.txt") && text.includes("django")) stack.add("Django");
-  if (paths.includes("requirements.txt") && text.includes("flask")) stack.add("Flask");
-  if (paths.includes("pyproject.toml")) stack.add("Python");
-  if (paths.includes("Dockerfile")) stack.add("Docker");
-  if (paths.includes("docker-compose.yml")) stack.add("Docker Compose");
+  if (hasTypeScript) stack.add("TypeScript");
+  if (lowerPaths.includes("requirements.txt") && text.includes("fastapi")) stack.add("FastAPI");
+  if (lowerPaths.includes("requirements.txt") && text.includes("django")) stack.add("Django");
+  if (lowerPaths.includes("requirements.txt") && text.includes("flask")) stack.add("Flask");
+  if (
+    lowerPaths.includes("pyproject.toml") ||
+    lowerPaths.some((path) => path.endsWith(".py")) ||
+    lowerPaths.includes("requirements.txt")
+  ) {
+    stack.add("Python");
+  }
+  if (lowerPaths.includes("dockerfile")) stack.add("Docker");
+  if (lowerPaths.includes("docker-compose.yml")) stack.add("Docker Compose");
 
   return Array.from(stack);
 }
@@ -200,6 +241,9 @@ export function summarizeRepo(
     .slice(0, 10);
 
   const detectedStack = detectTechStack(tree, importantFiles);
+  if (!detectedStack.length && metadata.primaryLanguage) {
+    detectedStack.push(metadata.primaryLanguage);
+  }
 
   return {
     metadata,

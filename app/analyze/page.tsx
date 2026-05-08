@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BrandLogo } from "@/components/BrandLogo";
 import { ScanningSequence } from "@/components/ScanningSequence";
 import { FallbackNotice } from "@/components/FallbackNotice";
 import fallbackData from "@/data/demo-analysis.json";
@@ -81,6 +82,9 @@ function AnalyzeContent() {
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(0,168,143,0.22),transparent_35%),radial-gradient(circle_at_70%_70%,rgba(0,209,178,0.12),transparent_30%)]" />
       <div className="relative z-10 w-full">
         <div className="mx-auto mb-8 max-w-3xl text-center">
+          <div className="mb-5 flex justify-center">
+            <BrandLogo className="h-16 w-16" />
+          </div>
           <p className="font-mono text-xs uppercase tracking-[0.24em] text-[#00D1B2]">
             Council Scan In Progress
           </p>

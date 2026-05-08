@@ -75,7 +75,7 @@ export function validateAgentReview(value: unknown, role: AgentRole): AgentRevie
         ],
     recommendations: Array.isArray(item.recommendations)
       ? item.recommendations.map(String).slice(0, 5)
-      : ["Retry live analysis or use the fallback demo."],
+      : ["Retry live analysis or use the local fallback report."],
     priorityScore: clampScore(item.priorityScore, 70),
     confidenceScore: clampScore(item.confidenceScore, 65),
   };
